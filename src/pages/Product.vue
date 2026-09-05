@@ -12,6 +12,7 @@ const loading = ref(true)
 const error = ref('')
 const qty = ref(1)
 const selectedImage = ref('')
+const imageFailed = ref(false)
 const gallery = computed(() => product.value?.image_url ? [product.value.image_url] : [])
 
 async function loadProduct () {
@@ -23,6 +24,7 @@ async function loadProduct () {
     if (!product.value) error.value = 'المنتج غير موجود.'
   } catch { error.value = 'تعذر تحميل المنتج الآن.' } finally { loading.value = false }
 }
+function handleImageError () { imageFailed.value = true; selectedImage.value = '' }
 function addToCart () {
   if (!product.value) return
   cart.add(product.value, qty.value)
@@ -37,8 +39,8 @@ onMounted(loadProduct)
   <template v-else-if="product">
     <section class="product-detail" dir="rtl">
       <div class="product-gallery">
-        <div class="large-product-image"><img :src="selectedImage || product.image_url" :alt="product.name" /></div>
-        <div v-if="gallery.length" class="thumbs"><button v-for="image in gallery" :key="image" class="thumb" :class="{ active: selectedImage === image }" @click="selectedImage = image"><img :src="image" :alt="product.name" /></button></div>
+        <div class="large-product-image"><img v-if="!imageFailed && (selectedImage || product.image_url)" :src="selectedImage || product.image_url" :alt="product.name" @error="handleImageError" /><div v-else class="image-empty">لا توجد صورة للمنتج</div></div>
+        <div v-if="gallery.length && !imageFailed" class="thumbs"><button v-for="image in gallery" :key="image" class="thumb" :class="{ active: selectedImage === image }" @click="selectedImage = image"><img :src="image" :alt="product.name" @error="handleImageError" /></button></div>
       </div>
       <div class="product-copy">
         <span class="eyebrow">{{ product.brand || 'VORA' }} · SKU {{ product.sku || 'N/A' }}</span>
