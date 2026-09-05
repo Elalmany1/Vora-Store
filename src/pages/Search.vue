@@ -1,1 +1,15 @@
-<script setup>import ProductCard from '../components/ProductCard.vue';import {ref} from 'vue';const q=ref('Samsung TV');const products=[{id:5,brand:'SAMSUNG',name:'65" QN900C Neo QLED 8K Smart TV',spec:'Neural Quantum Processor 8K',price:2999.99,badge:'BESTSELLER',stock:5},{id:6,brand:'SAMSUNG',name:'77" Class S95C OLED 4K',spec:'Quantum HDR OLED+',price:3499.99,stock:3},{id:7,brand:'SAMSUNG',name:'55" Class CU8000 Crystal UHD',spec:'Dynamic Crystal Color',price:429.99,stock:8},{id:8,brand:'SAMSUNG',name:'65" The Frame QLED 4K',spec:'Matte Display',price:1999.99,stock:2}]</script><template><section class="catalog"><div class="catalog-head"><div><span class="eyebrow">SEARCH</span><h1>Search results for “{{q}}”</h1><p>Showing {{products.length}} items</p></div><div class="search-box"><input v-model="q" aria-label="Search products"><button class="button button-dark">Search</button></div></div><div class="product-grid"><ProductCard v-for="p in products" :key="p.id" :product="p"/></div></section></template>
+<script setup>
+import { onMounted, ref } from 'vue'
+import ProductCard from '../components/ProductCard.vue'
+import { api } from '../services/api'
+import { useCartStore } from '../stores/cart'
+
+const q = ref('')
+const products = ref([])
+const loading = ref(false)
+const cart = useCartStore()
+async function search () { loading.value = true; try { const response = await api.products(`?q=${encodeURIComponent(q.value)}&limit=50`); products.value = response?.data || response || [] } catch { products.value = [] } finally { loading.value = false } }
+function addToCart (product) { cart.add(product) }
+onMounted(search)
+</script>
+<template><section class="catalog catalog-vora" dir="rtl"><div class="catalog-head-vora"><div><span class="eyebrow">البحث</span><h1>نتائج البحث</h1><p>ابحث عن منتجات VORA.</p></div><div class="search-box"><input v-model="q" aria-label="بحث عن المنتجات" placeholder="اسم المنتج أو الرمز" @keyup.enter="search"><button class="button button-dark" @click="search">بحث</button></div></div><p v-if="loading">جاري البحث...</p><div v-else-if="!products.length" class="empty-state-vora"><h2>لا توجد نتائج</h2><p>جرّب كلمة بحث مختلفة.</p></div><div v-else class="product-grid-vora"><ProductCard v-for="product in products" :key="product.id" :product="product" @add="addToCart" /></div></section></template>

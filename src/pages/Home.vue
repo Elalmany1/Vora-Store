@@ -3,11 +3,13 @@ import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import { api } from '../services/api'
+import { useCartStore } from '../stores/cart'
 
 const router = useRouter()
 const categories = ref([])
 const recentProducts = ref([])
 const loading = ref(true)
+const cart = useCartStore()
 
 const fallbackCategories = [
   { id: 1, name: 'أثاث خارجي', slug: 'outdoor-furniture', image_url: 'https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=240&q=80' },
@@ -41,11 +43,11 @@ onMounted(async () => {
       api.categories(),
       api.products('?sort=newest&limit=8')
     ])
-    categories.value = catResponse?.data || catResponse || fallbackCategories
-    recentProducts.value = productResponse?.data || productResponse?.products || productResponse || fallbackRecent
+    categories.value = catResponse?.data || catResponse || []
+    recentProducts.value = productResponse?.data || productResponse?.products || productResponse || []
   } catch {
-    categories.value = fallbackCategories
-    recentProducts.value = fallbackRecent
+    categories.value = []
+    recentProducts.value = []
   } finally {
     loading.value = false
   }
@@ -54,6 +56,8 @@ onMounted(async () => {
 function openCategory(category) {
   router.push(`/shop?category=${encodeURIComponent(category.slug)}`)
 }
+
+function addToCart(product) { cart.add(product) }
 </script>
 
 <template>
@@ -96,7 +100,7 @@ function openCategory(category) {
         <RouterLink to="/shop?sort=newest">عرض الكل</RouterLink>
       </div>
       <div class="recent-slider">
-        <ProductCard v-for="product in recentProducts" :key="product.id" :product="product" />
+        <ProductCard v-for="product in recentProducts" :key="product.id" :product="product" @add="addToCart" />
       </div>
     </section>
 
@@ -106,7 +110,7 @@ function openCategory(category) {
         <RouterLink to="/shop">كل المنتجات</RouterLink>
       </div>
       <div class="product-grid-vora">
-        <ProductCard v-for="product in recentProducts.slice(0, 4)" :key="`p-${product.id}`" :product="product" />
+        <ProductCard v-for="product in recentProducts.slice(0, 4)" :key="`p-${product.id}`" :product="product" @add="addToCart" />
       </div>
     </section>
   </div>

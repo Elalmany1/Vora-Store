@@ -1,1 +1,54 @@
-<script setup>import {useRoute} from 'vue-router';import {useCartStore} from '../stores/cart';import {ref} from 'vue';const route=useRoute(),cart=useCartStore(),qty=ref(1);const product={id:Number(route.params.id),brand:'SAMSUNG',name:'Samsung 634L SpaceMax Side by Side Refrigerator',sku:'RF24-RS68',price:1499,oldPrice:1699,stock:42,rating:4.8,specs:[['Capacity','634 L'],['Finish','Stainless Steel'],['Net Dimension','912 × 1780 × 716 mm'],['Net Weight','113 kg'],['Noise Level','36 dBA'],['Energy Consumption','395 kWh/year'],['Compressor','Digital Inverter Compressor'],['Connectivity','Wi-Fi Embedded, SmartThings App Support']]};function add(){for(let i=0;i<qty.value;i++)cart.add(product)}</script><template><section class="product-detail"><div class="product-gallery"><div class="large-product-image"><div class="device-shape fridge"></div></div><div class="thumbs"><div v-for="i in 4" :key="i" class="thumb"><div class="device-shape small"></div></div></div></div><div class="product-copy"><span class="eyebrow">{{product.brand}} · SKU {{product.sku}}</span><h1>{{product.name}}</h1><div class="rating">★ {{product.rating}} <span>(152 reviews)</span></div><div class="price">${{product.price.toLocaleString()}} <del>${{product.oldPrice.toLocaleString()}}</del></div><p class="stock">IN STOCK · Ships within 24 hours</p><div class="selectors"><label>Capacity<select><option>634L</option><option>650L</option></select></label><label>Finish<select><option>Stainless Steel</option></select></label></div><div class="purchase"><input v-model.number="qty" type="number" min="1"><button class="button button-blue" @click="add">Add to Cart</button><RouterLink class="button button-dark" to="/checkout/shipping">Buy Now</RouterLink></div><div class="benefits"><span>10 Year Warranty</span><span>Free Scheduled Delivery</span></div></div></section><section class="section specs"><span class="eyebrow">TECHNICAL SPECIFICATIONS</span><h2>Built for precision.</h2><div class="spec-grid"><div v-for="s in product.specs" :key="s[0]"><small>{{s[0]}}</small><b>{{s[1]}}</b></div></div></section><section class="section reviews"><span class="eyebrow">CUSTOMER REVIEWS</span><h2>4.8 / 5</h2><p>Based on 152 verified reviews.</p></section></template>
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useCartStore } from '../stores/cart'
+import { api } from '../services/api'
+
+const route = useRoute()
+const router = useRouter()
+const cart = useCartStore()
+const product = ref(null)
+const loading = ref(true)
+const error = ref('')
+const qty = ref(1)
+const selectedImage = ref('')
+const gallery = computed(() => product.value?.image_url ? [product.value.image_url] : [])
+
+async function loadProduct () {
+  loading.value = true
+  try {
+    const response = await api.product(route.params.id)
+    product.value = response?.data || response
+    selectedImage.value = product.value?.image_url || ''
+    if (!product.value) error.value = 'المنتج غير موجود.'
+  } catch { error.value = 'تعذر تحميل المنتج الآن.' } finally { loading.value = false }
+}
+function addToCart () {
+  if (!product.value) return
+  cart.add(product.value, qty.value)
+  router.push('/cart')
+}
+onMounted(loadProduct)
+</script>
+
+<template>
+  <section v-if="loading" class="section-vora loading-state" dir="rtl"><p>جاري تحميل المنتج...</p></section>
+  <section v-else-if="error" class="section-vora empty-state-vora" dir="rtl"><h1>{{ error }}</h1><RouterLink class="button button-orange" to="/shop">العودة للمتجر</RouterLink></section>
+  <template v-else-if="product">
+    <section class="product-detail" dir="rtl">
+      <div class="product-gallery">
+        <div class="large-product-image"><img :src="selectedImage || product.image_url" :alt="product.name" /></div>
+        <div v-if="gallery.length" class="thumbs"><button v-for="image in gallery" :key="image" class="thumb" :class="{ active: selectedImage === image }" @click="selectedImage = image"><img :src="image" :alt="product.name" /></button></div>
+      </div>
+      <div class="product-copy">
+        <span class="eyebrow">{{ product.brand || 'VORA' }} · SKU {{ product.sku || 'N/A' }}</span>
+        <h1>{{ product.name }}</h1>
+        <div class="price">{{ Number(product.price || 0).toLocaleString('ar-EG') }} ج.م</div>
+        <p class="stock">{{ product.stock > 0 ? `متوفر · ${product.stock} قطعة` : 'غير متوفر حالياً' }}</p>
+        <p class="product-description">{{ product.description || 'منتج مختار بعناية من مجموعة VORA.' }}</p>
+        <div class="purchase"><input v-model.number="qty" type="number" min="1" :max="product.stock || 1" aria-label="الكمية"><button class="button button-orange" :disabled="!product.stock" @click="addToCart">أضف للسلة</button><RouterLink class="button button-dark" to="/cart">عرض السلة</RouterLink></div>
+      </div>
+    </section>
+    <section class="section specs" dir="rtl"><span class="eyebrow">تفاصيل المنتج</span><h2>مصمم لبيتك.</h2><div class="spec-grid"><div><small>القسم</small><b>{{ product.category_name || 'VORA Home' }}</b></div><div><small>الحالة</small><b>{{ product.status === 'PUBLISHED' ? 'متاح' : product.status }}</b></div><div><small>العلامة</small><b>{{ product.brand || 'VORA' }}</b></div><div><small>رمز المنتج</small><b>{{ product.sku || 'N/A' }}</b></div></div></section>
+  </template>
+</template>

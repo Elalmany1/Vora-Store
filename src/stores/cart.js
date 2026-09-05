@@ -1,2 +1,30 @@
-import {defineStore} from 'pinia'
-export const useCartStore=defineStore('cart',{state:()=>({items:[{id:1,name:'Samsung 634L SpaceMax Refrigerator',sku:'SMX-634-SS',price:1749,qty:1},{id:2,name:'Corsair MP600 PRO XT 2TB',sku:'CSSD-F2000GBMP600PXT',price:189.99,qty:2}],discount:150}),getters:{count:s=>s.items.reduce((n,i)=>n+i.qty,0),subtotal:s=>s.items.reduce((n,i)=>n+i.price*i.qty,0),total(){return Math.max(0,this.subtotal-this.discount)}},actions:{add(p){const x=this.items.find(i=>i.id===p.id);x?x.qty++:this.items.push({...p,qty:1})},remove(id){this.items=this.items.filter(i=>i.id!==id)},setQty(id,qty){const x=this.items.find(i=>i.id===id);if(x)x.qty=Math.max(1,qty)}}})
+import { defineStore } from 'pinia'
+
+const savedItems = () => {
+	try { return JSON.parse(localStorage.getItem('vora-cart') || '[]') } catch { return [] }
+}
+
+export const useCartStore = defineStore('cart', {
+	state: () => ({ items: savedItems(), discount: 0 }),
+	getters: {
+		count: state => state.items.reduce((total, item) => total + item.qty, 0),
+		subtotal: state => state.items.reduce((total, item) => total + item.price * item.qty, 0),
+		total () { return Math.max(0, this.subtotal - this.discount) }
+	},
+	actions: {
+		persist () { localStorage.setItem('vora-cart', JSON.stringify(this.items)) },
+		add (product, qty = 1) {
+			const existing = this.items.find(item => item.id === product.id)
+			if (existing) existing.qty += qty
+			else this.items.push({ ...product, qty })
+			this.persist()
+		},
+		remove (id) { this.items = this.items.filter(item => item.id !== id); this.persist() },
+		setQty (id, qty) {
+			const item = this.items.find(entry => entry.id === id)
+			if (item) item.qty = Math.max(1, Number(qty) || 1)
+			this.persist()
+		},
+		clear () { this.items = []; this.persist() }
+	}
+})

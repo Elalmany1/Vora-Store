@@ -3,9 +3,11 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ProductCard from '../components/ProductCard.vue'
 import { api } from '../services/api'
+import { useCartStore } from '../stores/cart'
 
 const route = useRoute(); const router = useRouter()
 const products = ref([]); const categories = ref([]); const loading = ref(true)
+const cart = useCartStore()
 const search = ref(route.query.q || ''); const sort = ref(route.query.sort || 'newest'); const category = ref(route.query.category || '')
 const min = ref(route.query.min || ''); const max = ref(route.query.max || '')
 const fallback = [
@@ -33,11 +35,11 @@ async function load() {
     const [cats, data] = await Promise.all([api.categories(), api.products(`?${queryString.value}&limit=50`)]);
     categories.value = cats?.data || cats || []
     products.value = data?.data || data?.products || data || []
-    if (!products.value.length && !search.value && !category.value) products.value = fallback
-  } catch { categories.value = []; products.value = fallback }
+  } catch { categories.value = []; products.value = [] }
   finally { loading.value = false }
 }
 function apply() { router.replace(`/shop?${queryString.value}`) }
+function addToCart(product) { cart.add(product) }
 watch(() => route.fullPath, () => { search.value=route.query.q||''; category.value=route.query.category||''; sort.value=route.query.sort||'newest'; min.value=route.query.min||''; max.value=route.query.max||''; load() })
 onMounted(load)
 </script>
@@ -56,7 +58,7 @@ onMounted(load)
       <div>
         <div v-if="loading" class="product-grid-vora"><div v-for="n in 6" :key="n" class="product-skeleton"></div></div>
         <div v-else-if="!products.length" class="empty-state-vora"><h2>لا توجد منتجات مطابقة</h2><p>جرّب إزالة بعض الفلاتر أو البحث بكلمة مختلفة.</p></div>
-        <div v-else class="product-grid-vora"><ProductCard v-for="p in products" :key="p.id" :product="p"/></div>
+        <div v-else class="product-grid-vora"><ProductCard v-for="p in products" :key="p.id" :product="p" @add="addToCart"/></div>
       </div>
     </div>
   </section>
