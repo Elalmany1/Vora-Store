@@ -1,0 +1,1 @@
+<template><section class="confirmation"><span class="eyebrow">404</span><h1>Page not found.</h1><p>The requested VORA resource does not exist.</p><RouterLink class="button button-blue" to="/">Return Home</RouterLink></section></template>
