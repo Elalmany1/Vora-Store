@@ -15,7 +15,7 @@ import OrderDetail from '../pages/OrderDetail.vue'
 import NotFound from '../pages/NotFound.vue'
 const router=createRouter({history:createWebHistory(),routes:[
  {path:'/',component:StoreLayout,children:[
-  {path:'',component:Home},{path:'shop/:category',component:Category},{path:'search',component:Search},{path:'product/:id',component:Product},
+  {path:'',component:Home},{path:'shop',component:Category},{path:'shop/:category',component:Category},{path:'search',component:Search},{path:'product/:id',component:Product},
   {path:'cart',component:Cart},{path:'checkout/:step?',component:Checkout},{path:'order-confirmed/:id',component:Confirmation},
   {path:'login',component:Login},{path:'register',component:Register},{path:'account',component:Account},{path:'account/orders',component:Orders},{path:'account/orders/:id',component:OrderDetail}
  ]},

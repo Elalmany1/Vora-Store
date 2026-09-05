@@ -1,1 +1,4 @@
-<template><TopNav/><main><RouterView/></main><footer class="footer"><div><div class="brand">VORA</div><p>Engineered for high performance and absolute reliability.</p></div><div><b>Support</b><a>Technical Support</a><a>Warranty Info</a><a>Contact Engineering</a></div><div><b>Company</b><a>About</a><a>Policies</a><a>Contact</a></div><div><b>Legal</b><a>Privacy Policy</a><a>Terms of Service</a></div></footer></template><script setup>import TopNav from '../components/TopNav.vue'</script>
+<script setup>
+import TopNav from '../components/TopNav.vue'
+</script>
+<template><TopNav/><main><RouterView/></main><footer class="footer footer-vora" dir="rtl"><div><div class="brand brand-vora">VORA</div><p>أثاث ومنتجات منزلية مصممة لتناسب بيتك.</p></div><div><b>خدمة العملاء</b><a href="#">الشحن والتوصيل</a><a href="#">الضمان والاسترجاع</a><a href="#">تواصل معنا</a></div><div><b>VORA</b><a href="#">عن VORA</a><a href="#">الأسئلة الشائعة</a><a href="#">سياسة الخصوصية</a></div><div><b>النشرة البريدية</b><p>اشترك لتصلك المنتجات والعروض الجديدة.</p></div></footer></template>
